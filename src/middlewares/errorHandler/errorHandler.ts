@@ -8,6 +8,7 @@ const errorHandler = (err: ApiError, req: Request, res: Response, next: NextFunc
         console.error('Details:', JSON.stringify(err.errors, null, 2));
     }
 
+    
     // Send the error response
     res.status(err.statusCode).json({
         success: err.success,

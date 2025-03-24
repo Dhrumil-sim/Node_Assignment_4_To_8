@@ -32,6 +32,8 @@ class AuthController {
                 },
             });
         } catch (error) {
+
+            res.redirect('/login');
             return next(error);
         }
     });

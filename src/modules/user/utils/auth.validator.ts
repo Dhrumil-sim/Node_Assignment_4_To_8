@@ -37,7 +37,7 @@
             .valid("artist", "user")
             .required()
             .messages({
-                "any.only": "Invalid role. Allowed roles are 'admin' and 'user'",
+                "any.only": "Invalid role. Allowed roles are 'artist' and 'user'",
                 "string.empty": "Role is required",
             }),
 
