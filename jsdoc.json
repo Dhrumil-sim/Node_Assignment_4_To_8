@@ -1,0 +1,17 @@
+{
+  "source": {
+    "include": [
+      "."
+    ],
+    "includePattern": ".+\\.js$",
+    "excludePattern": "(node_modules|dist)"
+  },
+  "opts": {
+    "destination": "./src/docs",
+    "template": "node_modules/docdash",
+    "recurse": true
+  },
+  "plugins": [
+    "node_modules/jsdoc-plugin-typescript"
+  ]
+}

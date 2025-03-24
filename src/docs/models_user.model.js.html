@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>models/user.model.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-DatabaseConnection.html">DatabaseConnection</a><ul class='methods'><li data-type='method'><a href="module-DatabaseConnection.html#~connectDB">connectDB</a></li></ul></li><li><a href="module-Models.html">Models</a><ul class='methods'><li data-type='method'><a href="module-Models.html#.Song">Song</a></li><li data-type='method'><a href="module-Models.html#.User">User</a></li><li data-type='method'><a href="module-Models.html#~passwordHashing">passwordHashing</a></li></ul></li><li></li><li><a href="module-Utils.html">Utils</a><ul class='methods'><li data-type='method'><a href="module-Utils.html#.asyncHandler">asyncHandler</a></li><li data-type='method'><a href="module-Utils.html#.createError">createError</a></li></ul></li><li></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">models/user.model.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>var __awaiter = (this &amp;&amp; this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+import mongoose, { Schema } from "mongoose";
+import bcrypt from "bcrypt";
+/**
+ * @module Models
+ * @description This module contains Mongoose models for the application, including the User model.
+ */
+/**
+ * Represents the user schema for the application.
+ * @typedef {Object} User
+ * @property {string} username - The unique username for the user.
+ * @property {string} email - The unique email address for the user.
+ * @property {string} password - The hashed password of the user.
+ * @property {string} [profile_picture] - The URL of the user's profile picture (optional).
+ * @property {Date} joining_date - The date the user joined (default is the current date).
+ * @property {string} [refresh_token] - The refresh token associated with the user (optional).
+ * @property {string} role - The role of the user, either 'user' or 'artist'.
+ * @property {Date} createdAt - The timestamp when the user was created.
+ * @property {Date} updatedAt - The timestamp when the user was last updated.
+ */
+/**
+ * User Schema: Describes the structure for the User model, including validation, default values, and references.
+ *
+ * @section UserSchema
+ * @description The `UserSchema` includes user details such as `username`, `email`, `password`, and user role.
+ * It also supports password hashing using a `pre-save` hook that hashes the password before saving the user.
+ *
+ * @example
+ * const user = new User({
+ *     username: "john_doe",
+ *     email: "john.doe@example.com",
+ *     password: "plaintextpassword", // This will be hashed in the `pre` save hook.
+ *     role: "user"
+ * });
+ */
+/**
+ * @submodule UserSchema/PreHooks
+ * @description This submodule describes the `pre-save` hook attached to the User schema.
+ * The hook hashes the user's password before saving the user document to the database.
+ *
+ * @function passwordHashing
+ * @description This pre-save middleware hashes the password before saving it to the database.
+ * @async
+ * @param {Function} next - The callback function to move to the next middleware or save operation.
+ * @returns {void} The next middleware is executed after hashing the password.
+ *
+ * @example
+ * userSchema.pre("save", async function (next) {
+ *     this.password = await bcrypt.hash(this.password, 10);
+ *     next();
+ * });
+ */
+/**
+ * User Schema definition
+ * @function userSchema
+ * @memberof module:Models/UserSchema
+ */
+const userSchema = new Schema({
+    username: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        trim: true,
+        index: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+    },
+    password: {
+        type: String,
+        required: true,
+        select: false, // Exclude password from being returned in queries by default
+    },
+    profile_picture: {
+        type: String,
+        trim: true,
+    },
+    joining_date: {
+        type: Date,
+        required: true,
+        default: Date.now,
+    },
+    role: {
+        type: String,
+        enum: ['user', 'artist'],
+        required: true,
+        default: 'user',
+    },
+}, {
+    timestamps: true, // Automatically adds createdAt and updatedAt fields
+});
+/**
+ * Pre-save hook to hash the user's password before saving.
+ * This will be triggered before the `User` document is saved to the database.
+ *
+ * @function passwordHashing
+ * @memberof module:Models/UserSchema
+ * @description Hashes the password using bcrypt before saving it.
+ * @async
+ * @param {Function} next - Callback to move to the next middleware function.
+ */
+userSchema.pre("save", function (next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Check if the password is modified or newly set
+        if (this.isModified("password")) {
+            // Hash the password before saving
+            this.password = yield bcrypt.hash(this.password, 10);
+        }
+        next(); // Move to the next middleware or save process
+    });
+});
+userSchema.methods.isPasswordCorrect = function (password) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield bcrypt.compare(password, this.password);
+    });
+};
+/**
+ * @function User
+ * @memberof module:Models
+ * @description The Mongoose model representing a user in the application.
+ * @returns {mongoose.Model} The User model.
+ */
+export const User = mongoose.model("User", userSchema);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a> on Fri Mar 07 2025 15:19:05 GMT+0530 (India Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>
