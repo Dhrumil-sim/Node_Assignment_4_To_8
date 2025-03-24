@@ -5,6 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Artist Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        async function createSong(event) {
+            event.preventDefault();  // Prevent default form submission
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                // Handle success or failure based on response
+                const responseMessage = document.getElementById('responseMessage');
+                if (response.ok) {
+                    responseMessage.classList.remove('hidden', 'bg-red-500');
+                    responseMessage.classList.add('bg-green-500');
+                    responseMessage.textContent = data.message;  // Show success message
+                    form.reset();  // Reset form fields after successful submission
+                } else {
+                    responseMessage.classList.remove('hidden', 'bg-green-500');
+                    responseMessage.classList.add('bg-red-500');
+                    responseMessage.textContent = data.message;  // Show error message
+                }
+            } catch (error) {
+                const responseMessage = document.getElementById('responseMessage');
+                responseMessage.classList.remove('hidden', 'bg-green-500');
+                responseMessage.classList.add('bg-red-500');
+                responseMessage.textContent = 'An error occurred while creating the song. Please try again.';
+            }
+        }
+
+        async function fetchUserSongs() {
+            const response = await fetch('/api/song/', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+            const songsList = document.getElementById('songsList');
+            
+            // Clear previous songs if any
+            songsList.innerHTML = '';
+            
+            if (data.allSongs && data.allSongs.length > 0) {
+                data.allSongs.forEach(song => {
+                    const songItem = document.createElement('div');
+                    songItem.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4');
+                    songItem.innerHTML = `
+                        <h4 class="text-xl font-semibold text-blue-600">${song.title}</h4>
+                        <p class="text-gray-600">Genre: ${song.genre.join(', ')}</p>
+                        <p class="text-gray-600">Released: ${new Date(song.releaseDate).toLocaleDateString()}</p>
+                    `;
+                    songsList.appendChild(songItem);
+                });
+            } else {
+                songsList.innerHTML = '<p>No songs found.</p>';
+            }
+        }
+
+        function switchTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                if (tab.id === tabId) {
+                    tab.classList.remove('hidden');
+                } else {
+                    tab.classList.add('hidden');
+                }
+            });
+        }
+
+        // Call fetchUserSongs when page loads
+        document.addEventListener('DOMContentLoaded', fetchUserSongs);
+    </script>
 </head>
 <body class="bg-gray-50 flex justify-center items-center h-screen">
     <div class="w-full max-w-3xl p-6 bg-white rounded-lg shadow-lg">
@@ -13,44 +91,90 @@
 
         <!-- Profile Picture -->
         <div class="flex justify-center mb-6">
-            <img src="<%= user.profile_picture.replace('public', '')
-                          %>" alt="Profile Picture" class="w-32 h-32 rounded-full shadow-lg object-cover border-2 border-blue-600">
+            <img src="/<%= user.profile_picture.replace('public', '') %>" alt="Profile Picture" class="w-32 h-32 rounded-full shadow-lg object-cover border-2 border-blue-600">
         </div>
 
-        <!-- User Details -->
-        <div class="space-y-4">
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600 font-medium">Role:</span>
-                <span class="text-blue-600 font-semibold capitalize"><%= user.role %></span>
-            </div>
+        <!-- Tabs for User Info and Songs -->
+        <div class="mb-4">
+            <button class="py-2 px-6 bg-blue-600 text-white rounded-md mr-2" onclick="switchTab('userInfo')">User Info</button>
+            <button class="py-2 px-6 bg-blue-600 text-white rounded-md" onclick="switchTab('songsList')">Your Songs</button>
+        </div>
 
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600 font-medium">Email:</span>
-                <span class="text-gray-800 font-semibold"><%= user.email %></span>
-            </div>
+        <!-- User Info Tab -->
+        <div id="userInfo" class="tab-content">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600 font-medium">Role:</span>
+                    <span class="text-blue-600 font-semibold capitalize"><%= user.role %></span>
+                </div>
 
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600 font-medium">Joining Date:</span>
-                <span class="text-gray-800 font-semibold"><%= new Date(user.joining_date).toLocaleDateString() %></span>
-            </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600 font-medium">Email:</span>
+                    <span class="text-gray-800 font-semibold"><%= user.email %></span>
+                </div>
 
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600 font-medium">Last Password Update:</span>
-                <span class="text-gray-800 font-semibold"><%= new Date(user.last_password_update).toLocaleString() %></span>
-            </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600 font-medium">Joining Date:</span>
+                    <span class="text-gray-800 font-semibold"><%= new Date(user.joining_date).toLocaleDateString() %></span>
+                </div>
 
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600 font-medium">Account Created:</span>
-                <span class="text-gray-800 font-semibold"><%= new Date(user.createdAt).toLocaleString() %></span>
-            </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600 font-medium">Last Password Update:</span>
+                    <span class="text-gray-800 font-semibold"><%= new Date(user.last_password_update).toLocaleString() %></span>
+                </div>
 
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600 font-medium">Last Updated:</span>
-                <span class="text-gray-800 font-semibold"><%= new Date(user.updatedAt).toLocaleString() %></span>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600 font-medium">Account Created:</span>
+                    <span class="text-gray-800 font-semibold"><%= new Date(user.createdAt).toLocaleString() %></span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600 font-medium">Last Updated:</span>
+                    <span class="text-gray-800 font-semibold"><%= new Date(user.updatedAt).toLocaleString() %></span>
+                </div>
             </div>
         </div>
 
-        <!-- Actions -->
+        <!-- Your Songs Tab -->
+        <div id="songsList" class="tab-content hidden">
+            <h3 class="text-xl font-semibold text-center text-blue-600 mb-4">Your Songs</h3>
+            <div id="songsList" class="space-y-4">
+                <!-- Songs will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Create Song Form -->
+        <div class="mt-8">
+            <h3 class="text-xl font-semibold text-center text-blue-600 mb-4">Create New Song</h3>
+            <form action="/api/song/create" method="POST" enctype="multipart/form-data" class="space-y-4" onsubmit="createSong(event)">
+                <div>
+                    <label for="title" class="block text-gray-600 font-medium">Song Title</label>
+                    <input type="text" id="title" name="title" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+                </div>
+                <div>
+                    <label for="genre" class="block text-gray-600 font-medium">Genre</label>
+                    <input type="text" id="genre" name="genre" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="e.g., Pop, Rock, Jazz">
+                </div>
+                <div>
+                    <label for="songFile" class="block text-gray-600 font-medium">Upload Song</label>
+                    <input type="file" id="songFile" name="filePath" accept="audio/*" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+                </div>
+                <div>
+                    <label for="coverPicture" class="block text-gray-600 font-medium">Upload Cover Image</label>
+                    <input type="file" id="coverPicture" name="coverPicture" accept="image/*" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+                </div>
+                <div class="flex justify-center">
+                    <button type="submit" class="py-2 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                        Create Song
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Response Message -->
+        <div id="responseMessage" class="hidden p-4 mt-4 rounded-md text-white"></div>
+
+        <!-- Logout -->
         <div class="mt-8 flex justify-center">
             <a href="/logout" class="py-2 px-6 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-200">
                 Logout
