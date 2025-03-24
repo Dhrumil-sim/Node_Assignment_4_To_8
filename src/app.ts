@@ -39,6 +39,10 @@ class App {
         this.app.get('/login',(req : Request,res: Response)=>{
              res.render('login',{error: null});
         });
+
+        this.app.get('/artist',(req:Request,res: Response)=>{
+              res.render('artist',{error: null});
+        });
     }
 
     private setErrorHandler(): void {
