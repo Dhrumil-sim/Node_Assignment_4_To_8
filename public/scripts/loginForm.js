@@ -32,7 +32,7 @@ loginForm.addEventListener('submit', async (e) => {
             const role = data.data.user.role;
             if(role==='artist')
             {
-                 window.location.href = "/artist"
+                 window.location.href = `/artist/${data.data.user.username}`;
             }
         }
          

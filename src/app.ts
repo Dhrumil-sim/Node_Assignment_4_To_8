@@ -6,7 +6,15 @@ import songRouter from "./routes/song.routes.js";
 import { errorHandler } from "./middlewares/errorHandler/errorHandler.js";
 import { fileURLToPath } from "node:url";
 import path, { dirname } from "node:path";
+import { verifyJWT } from "./middlewares/authHandler/auth.middleware.js";
 
+interface reqObject extends Request{
+    user?: {
+        id : string,
+        username: string,
+        role: string,
+    }
+}
 
 const __fileName = fileURLToPath(import.meta.url);
 const __dirName = dirname(__fileName);
@@ -40,8 +48,17 @@ class App {
              res.render('login',{error: null});
         });
 
-        this.app.get('/artist',(req:Request,res: Response)=>{
-              res.render('artist',{error: null});
+
+
+        this.app.get('/artist/:artistName', verifyJWT, (req: reqObject, res: Response) => {
+            const { artistName } = req.params;
+             const isValidRoute =  (req.user?.username===artistName);
+             if(isValidRoute)
+             {
+                 return res.render(`artist`,{error: null, user: req.user});
+             }else{
+                return res.status(403).render('error', { message: 'Access denied. You can only view your own artist page.' });
+             }
         });
     }
 

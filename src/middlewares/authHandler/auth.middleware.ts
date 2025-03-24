@@ -25,14 +25,18 @@ export const verifyJWT = asyncHandler(async (req: AuthenticatedRequest, res: Res
     try {
         // Verify token and cast it to JwtPayload
         const decodedToken = jwt.verify(token, secret) as JwtPayload;
-
+        req.user = decodedToken;
+        
         if (!decodedToken._id) {
+            res.redirect('/login');
             return res.status(401).json({ message: "Unauthorized: Invalid token structure" });
+            
         }
 
         // Find user by ID from token payload
         const user = await User.findById(decodedToken._id).select("-password -refreshToken");
         if (!user) {
+            res.redirect('/login');
             return res.status(401).json({ message: "Unauthorized: Invalid Access Token" });
         }
 
@@ -41,6 +45,7 @@ export const verifyJWT = asyncHandler(async (req: AuthenticatedRequest, res: Res
 
         next(); // Proceed to next middleware
     } catch (error) {
+        return res.redirect('/login');
         return res.status(401).json({ message: "Unauthorized: Invalid token" });
     }
 });
