@@ -45,6 +45,17 @@ class SongService {
     }
   }
 
+  static async getArtistAllSongs(artistId: ISong["artist"]): Promise<ISong[]>{
+    try{
+      const songs = await Song.find({artist: artistId });
+      return songs;
+    }catch(error)
+    {
+       throw new ApiError(StatusCodes.NOT_FOUND,"Music Not Found");
+    }
+
+  }
+
 }
 
 export default SongService;

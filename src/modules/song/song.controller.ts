@@ -71,8 +71,24 @@ class SongController {
             });
         }
 
-    }
-);
+    });
+
+    // controller to get individual artist own songs 
+
+
+    static getArtistAllSongs = asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction)=>{
+           const artistId = req.user?._id;
+           const artistAllSongs = await SongService.getArtistAllSongs(artistId);
+           if(!artistAllSongs)
+           {
+             throw new ApiError(StatusCodes.NOT_FOUND, "No music is created by you ..");
+           }
+           else {
+               res.status(200).json({
+                 artistAllSongs
+               });
+           }
+    });
   }
 
 export default SongController;

@@ -14,4 +14,5 @@ router.post('/create', verifyJWT, uploadSong.fields([
   ]), validateRequest(songValidationSchema), SongController.createSong);
   
 router.get('/',verifyJWT,SongController.getAllSong);
+router.get('/:artistID', verifyJWT,SongController.getArtistAllSongs);
 export default router;
