@@ -19,6 +19,8 @@
         .map(genre => genre.trim()) // Trim whitespace
         .filter(genre => genre.length > 0); // Remove empty entries
 
+        formData.set("genre", JSON.stringify(genreArray));
+
             try {
                 const response = await fetch(form.action, {
                     method: 'POST',
