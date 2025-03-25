@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Song, ISong } from '../../../models/song.model.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { StatusCodes } from 'http-status-codes';
+import { query } from 'express';
 
 class SongService {
   /**
@@ -53,9 +54,25 @@ class SongService {
     {
        throw new ApiError(StatusCodes.NOT_FOUND,"Music Not Found");
     }
-
   }
 
+  static async getSearchedSongs(title: string): Promise<ISong[]> {
+    try {
+      const searchedSongs = await Song.find({
+        title: { $regex: title, $options: "i" },
+      });
+  
+      if (!searchedSongs || searchedSongs.length === 0) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "No songs match your search");
+      }
+  
+      return searchedSongs;
+    } catch (error) {
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Error searching songs");
+    }
+  }
 }
+  
+
 
 export default SongService;

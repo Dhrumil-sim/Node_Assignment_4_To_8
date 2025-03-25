@@ -4,6 +4,13 @@ import { now } from "mongoose";
 /**
  * Joi validation schema for the song model
  */
+
+export const searchSongValidationSchema = Joi.object({
+  query: Joi.string().min(1).required().messages({
+    "string.empty": "Search query cannot be empty",
+    "any.required": "Search query is required",
+  }),
+});
 const songValidationSchema = Joi.object({
   artist: Joi.string().hex().length(24).optional().messages({
     "string.base": `"artist" should be a string`,
