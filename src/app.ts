@@ -47,7 +47,18 @@ class App {
         this.app.get('/login',(req : Request,res: Response)=>{
              res.render('login',{error: null});
         });
-
+        this.app.get('/logout',(req : Request,res: Response)=>{
+            const options = {
+                hostname: 'localhost',  // Replace with the hostname of your API
+                port: 3000,  // Replace with the port your API is running on
+                path: '/api/user/logout',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${req.cookies.token}`,  // Assuming the token is in a cookie
+                },
+       }});
+       
 
 
         this.app.get('/artist/:artistName', verifyJWT, (req: reqObject, res: Response) => {
