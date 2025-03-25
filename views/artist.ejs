@@ -12,6 +12,13 @@
             const form = event.target;
             const formData = new FormData(form);
 
+            // function for convert comma seprated genre tokens to array before api call 
+            const genreInput = formData.get("genre");
+            const genreArray = genreInput
+        .split(",") // Split by comma
+        .map(genre => genre.trim()) // Trim whitespace
+        .filter(genre => genre.length > 0); // Remove empty entries
+
             try {
                 const response = await fetch(form.action, {
                     method: 'POST',
@@ -41,20 +48,25 @@
         }
 
         async function fetchUserSongs() {
-            const response = await fetch('/api/song/', {
+        
+            const artistId = '<%= user.id %>';
+
+            console.log(artistId);
+            const response = await fetch(`/api/song/${artistId}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
             const data = await response.json();
+            console.log(data);
             const songsList = document.getElementById('songsList');
             
             // Clear previous songs if any
             songsList.innerHTML = '';
             
-            if (data.allSongs && data.allSongs.length > 0) {
-                data.allSongs.forEach(song => {
+            if (data.artistAllSongs && data.artistAllSongs.length > 0) {
+                data.artistAllSongs.forEach(song => {
                     const songItem = document.createElement('div');
                     songItem.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4');
                     songItem.innerHTML = `
@@ -121,7 +133,7 @@
 
         <!-- Profile Picture -->
         <div class="flex justify-center mb-6">
-            <img src="/<%= user.profile_picture.replace('public', '') %>" alt="Profile Picture" class="w-32 h-32 rounded-full shadow-lg object-cover border-2 border-blue-600">
+            <img src="<%= user.profile_picture.replace('public', '') %>" alt="Profile Picture" class="w-32 h-32 rounded-full shadow-lg object-cover border-2 border-blue-600">
         </div>
 
         <!-- Tab Contents -->
