@@ -84,23 +84,47 @@
         document.addEventListener('DOMContentLoaded', fetchUserSongs);
     </script>
 </head>
-<body class="bg-gray-50 flex justify-center items-center h-screen">
-    <div class="w-full max-w-3xl p-6 bg-white rounded-lg shadow-lg">
+<body class="bg-gray-50 flex h-screen">
+    <!-- Side Menu -->
+    <div class="w-64 bg-blue-600 text-white flex-none p-6 space-y-8">
+        <div class="text-2xl font-semibold text-center">Surify</div>
+        <nav>
+            <ul class="space-y-4">
+                <li>
+                    <button onclick="switchTab('userInfo')" class="w-full text-left px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none">
+                        User Info
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchTab('songsList')" class="w-full text-left px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none">
+                        Your Songs
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchTab('createSong')" class="w-full text-left px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none">
+                        Create Song
+                    </button>
+                </li>
+                <li>
+                    <a href="/logout" class="w-full text-left px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none">
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 p-6 overflow-auto">
         <!-- Welcome Section -->
-        <h2 class="text-2xl font-semibold text-center text-blue-600 mb-6">Welcome, <%= user.username %>!</h2>
+        <h2 class="text-2xl font-semibold text-blue-600 mb-6">Welcome, <%= user.username %>!</h2>
 
         <!-- Profile Picture -->
         <div class="flex justify-center mb-6">
             <img src="/<%= user.profile_picture.replace('public', '') %>" alt="Profile Picture" class="w-32 h-32 rounded-full shadow-lg object-cover border-2 border-blue-600">
         </div>
 
-        <!-- Tabs for User Info and Songs -->
-        <div class="mb-4">
-            <button class="py-2 px-6 bg-blue-600 text-white rounded-md mr-2" onclick="switchTab('userInfo')">User Info</button>
-            <button class="py-2 px-6 bg-blue-600 text-white rounded-md" onclick="switchTab('songsList')">Your Songs</button>
-        </div>
-
-        <!-- User Info Tab -->
+        <!-- Tab Contents -->
         <div id="userInfo" class="tab-content">
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
@@ -135,7 +159,6 @@
             </div>
         </div>
 
-        <!-- Your Songs Tab -->
         <div id="songsList" class="tab-content hidden">
             <h3 class="text-xl font-semibold text-center text-blue-600 mb-4">Your Songs</h3>
             <div id="songsList" class="space-y-4">
@@ -143,8 +166,7 @@
             </div>
         </div>
 
-        <!-- Create Song Form -->
-        <div class="mt-8">
+        <div id="createSong" class="tab-content hidden">
             <h3 class="text-xl font-semibold text-center text-blue-600 mb-4">Create New Song</h3>
             <form action="/api/song/create" method="POST" enctype="multipart/form-data" class="space-y-4" onsubmit="createSong(event)">
                 <div>
@@ -173,13 +195,6 @@
 
         <!-- Response Message -->
         <div id="responseMessage" class="hidden p-4 mt-4 rounded-md text-white"></div>
-
-        <!-- Logout -->
-        <div class="mt-8 flex justify-center">
-            <a href="/logout" class="py-2 px-6 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-200">
-                Logout
-            </a>
-        </div>
     </div>
 </body>
 </html>
