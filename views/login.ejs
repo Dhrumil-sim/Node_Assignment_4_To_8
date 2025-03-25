@@ -18,7 +18,14 @@
 
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="password" name="password" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <div class="relative">
+                    <input type="password" id="password" name="password" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <button type="button" id="togglePassword" class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-blue-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12m-7.5-7.5A10.5 10.5 0 0115 12a10.5 10.5 0 01-7.5 7.5M12 12a1.5 1.5 0 01-3 0 1.5 1.5 0 013 0z" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">Login</button>
@@ -29,6 +36,25 @@
         </form>
     </div>
 
-    <script type="module" src="scripts/loginForm.js"></script>
+    <script>
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.getElementById('password');
+
+        togglePassword.addEventListener('click', () => {
+            // Toggle the type attribute
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+
+            // Toggle the icon
+            togglePassword.innerHTML = type === 'password' ? `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12m-7.5-7.5A10.5 10.5 0 0115 12a10.5 10.5 0 01-7.5 7.5M12 12a1.5 1.5 0 01-3 0 1.5 1.5 0 013 0z" />
+                </svg>` : `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12m0 0a10.5 10.5 0 007.5 7.5 10.5 10.5 0 007.5-7.5 10.5 10.5 0 00-7.5-7.5A10.5 10.5 0 003 12zm9 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                </svg>`;
+        });
+    </script>
+        <script type="module" src="scripts/loginForm.js"></script>
 </body>
 </html>
