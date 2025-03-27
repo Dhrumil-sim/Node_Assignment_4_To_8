@@ -10,6 +10,7 @@ import { upload } from "../middlewares/fileUpload/multer.middleware.js";
 import { verifyJWT } from "../middlewares/authHandler/auth.middleware.js";
 const router = Router();
 import { Song } from "../models/song.model.js";
+import { streamAudio } from "../modules/song/utils/audioStreamingUtility.js";
 
 router.post(
   "/create",
@@ -21,7 +22,7 @@ router.post(
   validateRequest(songValidationSchema),
   SongController.createSong
 );
-
+router.get("/stream/:id", streamAudio);
 router.get("/", verifyJWT, SongController.getAllSong);
 router.get("/artist/:artistID", verifyJWT, SongController.getArtistAllSongs);
 

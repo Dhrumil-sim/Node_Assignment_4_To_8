@@ -8,7 +8,7 @@
       // Function to fetch song details and render the player
       async function fetchSongDetails() {
         const songId = window.location.pathname.split("/").pop(); // Extract song ID from the URL
-        console.log(`/search/song/${songId}`);
+
         try {
           const response = await fetch(`/api/song/search/song/${songId}`, {
             headers: {
@@ -17,21 +17,23 @@
           });
 
           const data = await response.json();
-          console.log(data);
 
           if (response.ok) {
-            // Display song details
             const song = data.data;
-            const songPath = ".." + (song[0]?.filePath).replace("public", "");
+            const songPath = `/api/song/stream/${songId}`; // Stream from the new endpoint
             console.log(songPath);
+
             document.getElementById("songTitle").textContent = song.title;
             document.getElementById("songGenre").textContent =
               song.genre.join(", ");
             document.getElementById("releaseDate").textContent = new Date(
               song.releaseDate
             ).toLocaleDateString();
-            console.log(songPath);
-            document.getElementById("audioPlayer").src = `/${songPath}`; // Set the song file path for the audio player
+            // Set the audio player source
+            console.log("song Path : ", songPath);
+            const audioPlayer = document.getElementById("audioPlayer");
+            audioPlayer.src = `/${songPath}`; // Set the song file path for the audio player
+            audioPlayer.load(); // This ensures the audio player reloads with the new source
           } else {
             console.error(data.message);
             alert("Song not found.");
@@ -40,7 +42,6 @@
           console.error("Error fetching song details:", error);
         }
       }
-
       // Call the function to fetch song details when the page loads
       document.addEventListener("DOMContentLoaded", fetchSongDetails);
     </script>
@@ -56,10 +57,7 @@
     <!-- Audio player -->
     <div class="flex justify-center">
       <audio id="audioPlayer" controls class="w-full max-w-lg">
-        <source
-          src="../song/nature-investigation-255161.mp3"
-          type="audio/mp3"
-        />
+        <source src="" type="audio/mp3" />
         Your browser does not support the audio element.
       </audio>
     </div>
