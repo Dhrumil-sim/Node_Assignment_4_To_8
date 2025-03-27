@@ -17,23 +17,24 @@
           });
 
           const data = await response.json();
+          const songData = data.data;
 
           if (response.ok) {
-            const song = data.data;
-            const songPath = `/api/song/stream/${songId}`; // Stream from the new endpoint
-            console.log(songPath);
+            const song = songData[0]; // Assuming the songData is an array, adjust if needed
+            const songStreamUrl = `/api/song/stream/${song._id}`; // Use the streaming route here
 
             document.getElementById("songTitle").textContent = song.title;
+            document.getElementById("songArtist").textContent = song.artist; // Display artist name
             document.getElementById("songGenre").textContent =
               song.genre.join(", ");
             document.getElementById("releaseDate").textContent = new Date(
               song.releaseDate
             ).toLocaleDateString();
-            // Set the audio player source
-            console.log("song Path : ", songPath);
+
+            // Set the audio player source to the streaming endpoint
             const audioPlayer = document.getElementById("audioPlayer");
-            audioPlayer.src = `/${songPath}`; // Set the song file path for the audio player
-            audioPlayer.load(); // This ensures the audio player reloads with the new source
+            audioPlayer.src = songStreamUrl; // Set the stream URL as the source
+            audioPlayer.load(); // Ensure the audio player reloads with the new source
           } else {
             console.error(data.message);
             alert("Song not found.");
@@ -42,28 +43,32 @@
           console.error("Error fetching song details:", error);
         }
       }
+
       // Call the function to fetch song details when the page loads
       document.addEventListener("DOMContentLoaded", fetchSongDetails);
     </script>
   </head>
   <body class="bg-gray-50 p-6">
-    <h1
-      class="text-2xl font-semibold text-center text-blue-600 mb-6"
-      id="songTitle"
-    ></h1>
-    <div class="text-center text-gray-600 mb-4" id="songGenre"></div>
-    <div class="text-center text-gray-600 mb-4" id="releaseDate"></div>
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+      <h1
+        class="text-3xl font-semibold text-center text-blue-600 mb-4"
+        id="songTitle"
+      ></h1>
+      <div class="text-center text-gray-600 mb-2" id="songArtist"></div>
+      <div class="text-center text-gray-600 mb-2" id="songGenre"></div>
+      <div class="text-center text-gray-600 mb-4" id="releaseDate"></div>
 
-    <!-- Audio player -->
-    <div class="flex justify-center">
-      <audio id="audioPlayer" controls class="w-full max-w-lg">
-        <source src="" type="audio/mp3" />
-        Your browser does not support the audio element.
-      </audio>
-    </div>
+      <!-- Audio player -->
+      <div class="flex justify-center">
+        <audio id="audioPlayer" controls class="w-full max-w-lg">
+          <source src="" type="audio/mp3" />
+          Your browser does not support the audio element.
+        </audio>
+      </div>
 
-    <div class="flex justify-center mt-4">
-      <a href="/" class="text-blue-600">Back to Dashboard</a>
+      <div class="flex justify-center mt-4">
+        <a href="/" class="text-blue-600">Back to Dashboard</a>
+      </div>
     </div>
   </body>
 </html>

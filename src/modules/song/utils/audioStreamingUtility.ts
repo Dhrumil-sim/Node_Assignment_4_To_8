@@ -37,13 +37,15 @@ export const streamAudio = asyncHandler(
         return;
       }
 
-      const chunkSize = end - start + 1;
+      const chunkSize = 1024;
+      console.log(chunkSize);
       const file = fs.createReadStream(filePath, { start, end });
       const head = {
         "Content-Range": `bytes ${start}-${end}/${fileSize}`,
         "Accept-Ranges": "bytes",
         "Content-Length": chunkSize,
         "Content-Type": "audio/mpeg",
+        "Content-Disposition": "inline",
       };
 
       res.writeHead(206, head);
@@ -52,6 +54,7 @@ export const streamAudio = asyncHandler(
       const head = {
         "Content-Length": fileSize,
         "Content-Type": "audio/mpeg",
+        "Content-Disposition": "inline",
       };
 
       res.writeHead(200, head);
