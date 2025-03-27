@@ -1,264 +1,399 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Artist Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        async function createSong(event) {
-            event.preventDefault();  // Prevent default form submission
+      async function createSong(event) {
+        event.preventDefault(); // Prevent default form submission
 
-            const form = event.target;
-            const formData = new FormData(form);
+        const form = event.target;
+        const formData = new FormData(form);
 
-            // function for convert comma separated genre tokens to array before api call 
-            const genreInput = formData.get("genre");
-            const genreArray = genreInput
-        .split(",") // Split by comma
-        .map(genre => genre.trim()) // Trim whitespace
-        .filter(genre => genre.length > 0); // Remove empty entries
+        // function for convert comma separated genre tokens to array before api call
+        const genreInput = formData.get("genre");
+        const genreArray = genreInput
+          .split(",") // Split by comma
+          .map((genre) => genre.trim()) // Trim whitespace
+          .filter((genre) => genre.length > 0); // Remove empty entries
 
         formData.set("genre", JSON.stringify(genreArray));
 
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                });
+        try {
+          const response = await fetch(form.action, {
+            method: "POST",
+            body: formData,
+          });
 
-                const data = await response.json();
+          const data = await response.json();
 
-                // Handle success or failure based on response
-                const responseMessage = document.getElementById('responseMessage');
-                if (response.ok) {
-                    responseMessage.classList.remove('hidden', 'bg-red-500');
-                    responseMessage.classList.add('bg-green-500');
-                    responseMessage.textContent = data.message;  // Show success message
-                    form.reset();  // Reset form fields after successful submission
-                } else {
-                    responseMessage.classList.remove('hidden', 'bg-green-500');
-                    responseMessage.classList.add('bg-red-500');
-                    responseMessage.textContent = data.message;  // Show error message
-                }
-            } catch (error) {
-                const responseMessage = document.getElementById('responseMessage');
-                responseMessage.classList.remove('hidden', 'bg-green-500');
-                responseMessage.classList.add('bg-red-500');
-                responseMessage.textContent = 'An error occurred while creating the song. Please try again.';
-            }
+          // Handle success or failure based on response
+          const responseMessage = document.getElementById("responseMessage");
+          if (response.ok) {
+            responseMessage.classList.remove("hidden", "bg-red-500");
+            responseMessage.classList.add("bg-green-500");
+            responseMessage.textContent = data.message; // Show success message
+            form.reset(); // Reset form fields after successful submission
+          } else {
+            responseMessage.classList.remove("hidden", "bg-green-500");
+            responseMessage.classList.add("bg-red-500");
+            responseMessage.textContent = data.message; // Show error message
+          }
+        } catch (error) {
+          const responseMessage = document.getElementById("responseMessage");
+          responseMessage.classList.remove("hidden", "bg-green-500");
+          responseMessage.classList.add("bg-red-500");
+          responseMessage.textContent =
+            "An error occurred while creating the song. Please try again.";
         }
+      }
 
-        async function fetchUserSongs() {
-        
-            const artistId = '<%= user.id %>';
+      async function fetchUserSongs() {
+        const artistId = "<%= user.id %>";
 
-            console.log(artistId);
-            const response = await fetch(`/api/song/${artistId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            const data = await response.json();
-            console.log(data);
-            const songsList = document.getElementById('songsList');
-            
-            // Clear previous songs if any
-            songsList.innerHTML = '';
-            
-            if (data.artistAllSongs && data.artistAllSongs.length > 0) {
-                data.artistAllSongs.forEach(song => {
-                    const songItem = document.createElement('div');
-                    songItem.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4');
-                    songItem.innerHTML = `
+        console.log(artistId);
+        const response = await fetch(`/api/song/${artistId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const data = await response.json();
+        console.log(data);
+        const songsList = document.getElementById("songsList");
+
+        // Clear previous songs if any
+        songsList.innerHTML = "";
+
+        if (data.artistAllSongs && data.artistAllSongs.length > 0) {
+          data.artistAllSongs.forEach((song) => {
+            const songItem = document.createElement("div");
+            songItem.classList.add(
+              "bg-white",
+              "p-4",
+              "rounded-lg",
+              "shadow-md",
+              "mb-4"
+            );
+            songItem.innerHTML = `
                         <h4 class="text-xl font-semibold text-blue-600">${song.title}</h4>
-                        <p class="text-gray-600">Genre: ${song.genre.join(', ')}</p>
+                        <p class="text-gray-600">Genre: ${song.genre.join(", ")}</p>
                         <p class="text-gray-600">Released: ${new Date(song.releaseDate).toLocaleDateString()}</p>
                     `;
-                    songsList.appendChild(songItem);
-                });
-            } else {
-                songsList.innerHTML = '<p>No songs found.</p>';
+            songsList.appendChild(songItem);
+          });
+        } else {
+          songsList.innerHTML = "<p>No songs found.</p>";
+        }
+      }
+
+      function switchTab(tabId) {
+        const tabs = document.querySelectorAll(".tab-content");
+        tabs.forEach((tab) => {
+          if (tab.id === tabId) {
+            tab.classList.remove("hidden");
+          } else {
+            tab.classList.add("hidden");
+          }
+        });
+      }
+
+      // Debounce function for search input
+      let timeout;
+      function debounceSearch(event) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          const query = event.target.value.trim();
+          if (query) {
+            searchSongs(query);
+          } else {
+            // Clear search results if query is empty
+            document.getElementById("searchResults").innerHTML = "";
+          }
+        }, 500);
+      }
+
+      // Function to fetch search results from API
+      async function searchSongs(query) {
+        try {
+          console.log(`/api/song/search?query=${encodeURIComponent(query)}`);
+          const response = await fetch(
+            `/api/song/search?query=${encodeURIComponent(query)}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
             }
-        }
+          );
+          const data = await response.json();
 
-        function switchTab(tabId) {
-            const tabs = document.querySelectorAll('.tab-content');
-            tabs.forEach(tab => {
-                if (tab.id === tabId) {
-                    tab.classList.remove('hidden');
-                } else {
-                    tab.classList.add('hidden');
-                }
+          console.log(data);
+          if (response.ok) {
+            renderSearchResults(data.data); // Render the results on the page
+          } else {
+            console.error(data.message);
+            document.getElementById("searchResults").innerHTML =
+              `<p class="text-red-600">${data.message}</p>`;
+          }
+        } catch (error) {
+          console.error("Error fetching search results:", error);
+        }
+      }
+
+      // Function to dynamically render search results
+      function renderSearchResults(songs) {
+        const resultsContainer = document.getElementById("searchResults");
+        resultsContainer.innerHTML = ""; // Clear previous results
+
+        if (songs && songs.length > 0) {
+          songs.forEach((song) => {
+            const songItem = document.createElement("div");
+            songItem.classList.add(
+              "bg-white",
+              "p-4",
+              "rounded-lg",
+              "shadow-md",
+              "mb-4",
+              "cursor-pointer"
+            );
+
+            // Add event listener to redirect to the song page when clicked
+            songItem.addEventListener("click", () => {
+              window.location.href = `/song/${song._id}`; // Redirect to the song page
             });
+
+            songItem.innerHTML = `
+        <h4 class="text-xl font-semibold text-blue-600">${song.title}</h4>
+        <p class="text-gray-600">Genre: ${song.genre.join(", ")}</p>
+        <p class="text-gray-600">Released: ${new Date(song.releaseDate).toLocaleDateString()}</p>
+      `;
+            resultsContainer.appendChild(songItem);
+          });
+        } else {
+          resultsContainer.innerHTML = "<p>No songs found.</p>";
         }
+      }
 
-        //search song 
-
-        let timeout;
-function debounceSearch(event) {
-  clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    const query = event.target.value.trim();
-    if (query) {
-      searchSongs(query);
-    }
-  }, 500);
-}
-
-async function searchSongs(query) {
-  try {
-    const response = await fetch(`/api/song/search?query=${encodeURIComponent(query)}`, {
-    
-      headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-    });
-    const data = await response.json();
-    
-    if (response.ok) {
-      console.log(data); // Render the results on the page
-    } else {
-      console.error(data.message);
-    }
-  } catch (error) {
-    console.error("Error fetching search results:", error);
-  }
-}
-
-
-        // Call fetchUserSongs when page loads
-        document.addEventListener('DOMContentLoaded', fetchUserSongs);
+      // Call fetchUserSongs when page loads
+      document.addEventListener("DOMContentLoaded", fetchUserSongs);
     </script>
-</head>
-<body class="bg-gray-50 flex h-screen">
+  </head>
+  <body class="bg-gray-50 flex h-screen">
     <!-- Side Menu -->
     <div class="w-64 bg-blue-600 text-white flex-none p-6 space-y-8">
-        <div class="text-2xl font-semibold text-center">Surify</div>
-        <nav>
-            <ul class="space-y-4">
-                <li>
-                    <button onclick="switchTab('userInfo')" class="w-full text-left px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none">
-                        User Info
-                    </button>
-                </li>
-                <li>
-                    <button onclick="switchTab('songsList')" class="w-full text-left px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none">
-                        Your Songs
-                    </button>
-                </li>
-                <li>
-                    <button onclick="switchTab('createSong')" class="w-full text-left px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none">
-                        Create Song
-                    </button>
-                </li>
+      <div class="text-2xl font-semibold text-center">Surify</div>
+      <nav>
+        <ul class="space-y-4">
+          <li>
+            <button
+              onclick="switchTab('userInfo')"
+              class="w-full text-left px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none"
+            >
+              User Info
+            </button>
+          </li>
+          <li>
+            <button
+              onclick="switchTab('songsList')"
+              class="w-full text-left px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none"
+            >
+              Your Songs
+            </button>
+          </li>
+          <li>
+            <button
+              onclick="switchTab('createSong')"
+              class="w-full text-left px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none"
+            >
+              Create Song
+            </button>
+          </li>
 
-                <li>
-                    <a href="/logout" class="w-full text-left px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none">
-                        Logout
-                    </a>
-                </li>
-            </ul>
-        </nav>
+          <li>
+            <a
+              href="/logout"
+              class="w-full text-left px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none"
+            >
+              Logout
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
 
     <!-- Main Content Area -->
     <div class="flex-1 p-6 overflow-auto">
-        <!-- Welcome Section -->
-        <h2 class="text-2xl font-semibold text-blue-600 mb-6">Welcome, <%= user.username %>!</h2>
-          
-        <!-- Search Bar -->
-        <div class="flex justify-center mb-6">
-            <form id="searchForm" action="/api/song/search" method="GET" class="flex w-full max-w-lg">
-                <input 
-                    type="text" 
-                    id="searchQuery" 
-                    name="query" 
-                    placeholder="Search for songs..."
-                    oninput="debounceSearch(event)" 
-                    required 
-                    class="flex-1 p-3 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-               
-            </form>
+      <!-- Welcome Section -->
+      <h2 class="text-2xl font-semibold text-blue-600 mb-6">
+        Welcome, <%= user.username %>!
+      </h2>
+
+      <div class="flex justify-center mb-6">
+        <form
+          id="searchForm"
+          action="/api/song/search"
+          method="GET"
+          class="flex w-full max-w-lg"
+        >
+          <input
+            type="text"
+            id="searchQuery"
+            name="query"
+            placeholder="Search for songs..."
+            oninput="debounceSearch(event)"
+            required
+            class="flex-1 p-3 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+          />
+        </form>
+      </div>
+      <!-- Search results container below the search bar -->
+      <div id="searchResults" class="mt-4 space-y-4">
+        <!-- Search results will be dynamically added here -->
+      </div>
+
+      <!-- Profile Picture -->
+      <div class="flex justify-center mb-6">
+        <img
+          src="<%= user.profile_picture.replace('public', '') %>"
+          alt="Profile Picture"
+          class="w-32 h-32 rounded-full shadow-lg object-cover border-2 border-blue-600"
+        />
+      </div>
+
+      <!-- Tab Contents -->
+      <div id="userInfo" class="tab-content">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-gray-600 font-medium">Role:</span>
+            <span class="text-blue-600 font-semibold capitalize"
+              ><%= user.role %></span
+            >
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-gray-600 font-medium">Email:</span>
+            <span class="text-gray-800 font-semibold"><%= user.email %></span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-gray-600 font-medium">Joining Date:</span>
+            <span class="text-gray-800 font-semibold"
+              ><%= new Date(user.joining_date).toLocaleDateString() %></span
+            >
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-gray-600 font-medium">Last Password Update:</span>
+            <span class="text-gray-800 font-semibold"
+              ><%= new Date(user.last_password_update).toLocaleString() %></span
+            >
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-gray-600 font-medium">Account Created:</span>
+            <span class="text-gray-800 font-semibold"
+              ><%= new Date(user.createdAt).toLocaleString() %></span
+            >
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-gray-600 font-medium">Last Updated:</span>
+            <span class="text-gray-800 font-semibold"
+              ><%= new Date(user.updatedAt).toLocaleString() %></span
+            >
+          </div>
         </div>
-        <!-- Profile Picture -->
-        <div class="flex justify-center mb-6">
-            <img src="<%= user.profile_picture.replace('public', '') %>" alt="Profile Picture" class="w-32 h-32 rounded-full shadow-lg object-cover border-2 border-blue-600">
+      </div>
+
+      <div id="songsList" class="tab-content hidden">
+        <h3 class="text-xl font-semibold text-center text-blue-600 mb-4">
+          Your Songs
+        </h3>
+        <div id="songsList" class="space-y-4">
+          <!-- Songs will be dynamically added here -->
         </div>
+      </div>
 
-        <!-- Tab Contents -->
-        <div id="userInfo" class="tab-content">
-            <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600 font-medium">Role:</span>
-                    <span class="text-blue-600 font-semibold capitalize"><%= user.role %></span>
-                </div>
+      <div id="createSong" class="tab-content hidden">
+        <h3 class="text-xl font-semibold text-center text-blue-600 mb-4">
+          Create New Song
+        </h3>
+        <form
+          action="/api/song/create"
+          method="POST"
+          enctype="multipart/form-data"
+          class="space-y-4"
+          onsubmit="createSong(event)"
+        >
+          <div>
+            <label for="title" class="block text-gray-600 font-medium"
+              >Song Title</label
+            >
+            <input
+              type="text"
+              id="title"
+              name="title"
+              required
+              class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+          </div>
+          <div>
+            <label for="genre" class="block text-gray-600 font-medium"
+              >Genre</label
+            >
+            <input
+              type="text"
+              id="genre"
+              name="genre"
+              required
+              class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="e.g., Pop, Rock, Jazz"
+            />
+          </div>
+          <div>
+            <label for="songFile" class="block text-gray-600 font-medium"
+              >Upload Song</label
+            >
+            <input
+              type="file"
+              id="songFile"
+              name="filePath"
+              accept="audio/*"
+              required
+              class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+          </div>
+          <div>
+            <label for="coverPicture" class="block text-gray-600 font-medium"
+              >Upload Cover Image</label
+            >
+            <input
+              type="file"
+              id="coverPicture"
+              name="coverPicture"
+              accept="image/*"
+              required
+              class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+          </div>
+          <div class="flex justify-center">
+            <button
+              type="submit"
+              class="py-2 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            >
+              Create Song
+            </button>
+          </div>
+        </form>
+      </div>
 
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600 font-medium">Email:</span>
-                    <span class="text-gray-800 font-semibold"><%= user.email %></span>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600 font-medium">Joining Date:</span>
-                    <span class="text-gray-800 font-semibold"><%= new Date(user.joining_date).toLocaleDateString() %></span>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600 font-medium">Last Password Update:</span>
-                    <span class="text-gray-800 font-semibold"><%= new Date(user.last_password_update).toLocaleString() %></span>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600 font-medium">Account Created:</span>
-                    <span class="text-gray-800 font-semibold"><%= new Date(user.createdAt).toLocaleString() %></span>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600 font-medium">Last Updated:</span>
-                    <span class="text-gray-800 font-semibold"><%= new Date(user.updatedAt).toLocaleString() %></span>
-                </div>
-            </div>
-        </div>
-
-        <div id="songsList" class="tab-content hidden">
-            <h3 class="text-xl font-semibold text-center text-blue-600 mb-4">Your Songs</h3>
-            <div id="songsList" class="space-y-4">
-                <!-- Songs will be dynamically added here -->
-            </div>
-        </div>
-
-        <div id="createSong" class="tab-content hidden">
-            <h3 class="text-xl font-semibold text-center text-blue-600 mb-4">Create New Song</h3>
-            <form action="/api/song/create" method="POST" enctype="multipart/form-data" class="space-y-4" onsubmit="createSong(event)">
-                <div>
-                    <label for="title" class="block text-gray-600 font-medium">Song Title</label>
-                    <input type="text" id="title" name="title" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
-                </div>
-                <div>
-                    <label for="genre" class="block text-gray-600 font-medium">Genre</label>
-                    <input type="text" id="genre" name="genre" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="e.g., Pop, Rock, Jazz">
-                </div>
-                <div>
-                    <label for="songFile" class="block text-gray-600 font-medium">Upload Song</label>
-                    <input type="file" id="songFile" name="filePath" accept="audio/*" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
-                </div>
-                <div>
-                    <label for="coverPicture" class="block text-gray-600 font-medium">Upload Cover Image</label>
-                    <input type="file" id="coverPicture" name="coverPicture" accept="image/*" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
-                </div>
-                <div class="flex justify-center">
-                    <button type="submit" class="py-2 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
-                        Create Song
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Response Message -->
-        <div id="responseMessage" class="hidden p-4 mt-4 rounded-md text-white"></div>
+      <!-- Response Message -->
+      <div
+        id="responseMessage"
+        class="hidden p-4 mt-4 rounded-md text-white"
+      ></div>
     </div>
-</body>
+  </body>
 </html>
